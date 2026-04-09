@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Legal Document Summarizer – Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        * { font-family: "Times New Roman", Times, serif !important; }
+        a { text-decoration: none !important; }   /* removes underline from Get Started */
+    </style>
+</head>
+<body>
+
+<div class="card" style="max-width:720px;text-align:center;">
+    <h1>Legal Document Summarizer</h1>
+    <p style="margin:1rem 0;font-size:1.1rem;color:#ccc;">
+        Turn vast & complex legal documents into simple summaries.
+    </p>
+
+    <div style="display:flex;gap:12px;justify-content:center;margin-top:20px;">
+        <a href="/summarize">
+            <button class="btn btn-primary">
+                Generate Summary
+            </button>
+        </a>
+        <a href="/dashboard">
+            <button class="btn btn-primary">
+                View Uploaded Documents
+            </button>
+        </a>
+    </div>
+
+    <div style="
+        background:#2a2a2a;
+        border-radius:12px;
+        padding:1.5rem;
+        margin-top:1.5rem;
+        color:#bbbbbb;
+        font-size:0.95rem;
+    ">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;">
+            <div style="text-align:center;">
+                <div style="font-weight:600;font-size:1.1rem;">Documents</div>
+                <div>TXT • PDF • DOCX</div>
+            </div>
+            <div style="text-align:center;">
+                <div style="font-weight:600;font-size:1.1rem;">AI</div>
+                <div>Smart summarisation</div>
+            </div>
+            <div style="text-align:center;">
+                <div style="font-weight:600;font-size:1.1rem;">Speaker</div>
+                <div>Read aloud</div>
+            </div>
+            <div style="text-align:center;">
+                <div style="font-weight:600;font-size:1.1rem;">Zoom/Print</div>
+                <div>Full control</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
