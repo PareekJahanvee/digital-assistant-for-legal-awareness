@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Legal Simplifier</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        * {
+            font-family: "Times New Roman", Times, serif !important;
+        }
+
+        .card {
+            background: #1e1e1e;
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 12px;
+            margin-top: 1.5rem;
+        }
+
+        .btn {
+            flex: 1;                    /* This makes both buttons equal width */
+            padding: 0.85rem 1.2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            color: white;
+            background: #0066ff;
+        }
+
+        .btn:hover {
+            background: #0052cc;
+            transform: translateY(-1px);
+        }
+
+        /* File input styling */
+        input[type="file"] {
+            width: 100%;
+            padding: 0.7rem;
+            border: 1px solid #444;
+            border-radius: 6px;
+            background: #222;
+            color: #fff;
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.6rem;
+            font-weight: 600;
+        }
+
+        .loader {
+            text-align: center;
+            margin-top: 1rem;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+
+    <h2 style="text-align:center; margin-bottom: 1.5rem;">Upload Document</h2>
+
+    <div class="card">
+        <form method="POST" enctype="multipart/form-data" onsubmit="showLoader()">
+            <label for="file">Choose a file (TXT, PDF, DOCX)</label>
+            <input type="file" name="file" id="file" accept=".txt,.pdf,.docx" required>
+
+            <div class="btn-container">
+                <button type="submit" class="btn">
+                    Simplify
+                </button>
+
+                <button type="button" class="btn" onclick="window.location.href='/dashboard'">
+                    View Uploaded Documents
+                </button>
+            </div>
+
+            <p id="loader" class="loader" style="display:none;">
+                Processing… Please wait
+            </p>
+        </form>
+    </div>
+
+    {% if summary %}
+    <!-- Your existing summary section remains the same -->
+    <div class="card" style="max-width:none;">
+        <div class="toolbar">
+            <span style="font-size:1.1rem; font-weight:600;">Simplified Summary</span>
+
+            <div style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap;">
+                <button onclick="zoomOut()">–</button>
+                <span id="zoom-level" style="min-width:60px; text-align:center;">100%</span>
+                <button onclick="zoomIn()">+</button>
+                <button onclick="printSummary()">Print</button>
+                <button onclick="readSummary()">🔊 Speaker</button>
+                
+                <a href="#" onclick="downloadSummary(); return false;">
+                    <button>Download</button>
+                </a>
+
+                <button id="compare-btn" class="compare-btn" onclick="toggleCompare()">
+                    Compare Original
+                </button>
+            </div>
+        </div>
+
+        <div id="summary-content" class="summary-content">
+            {{ summary | safe }}
+        </div>
+
+        <div id="comparison-wrapper" class="comparison-wrapper">
+            <div class="doc-panel">
+                <h4>Original Document</h4>
+                <div id="original-text">{{ original_text | safe }}</div>
+            </div>
+            <div class="doc-panel">
+                <h4>Simplified Summary</h4>
+                <div id="summary-text">{{ summary | safe }}</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <script>
+        function showLoader() {
+            document.getElementById('loader').style.display = 'block';
+        }
+
+        // Keep all your other scripts (zoom, print, download, compare, etc.)
+        let currentZoom = 100;
+
+        function toggleCompare() {
+            const wrapper = document.getElementById('comparison-wrapper');
+            const btn = document.getElementById('compare-btn');
+            const single = document.getElementById('summary-content');
+
+            if (wrapper.classList.contains('active')) {
+                wrapper.classList.remove('active');
+                single.style.display = 'block';
+                btn.textContent = 'Compare Original';
+            } else {
+                wrapper.classList.add('active');
+                single.style.display = 'none';
+                btn.textContent = 'Hide Comparison';
+            }
+        }
+
+        function readSummary() {
+            const text = document.getElementById('summary-text').textContent || 
+                         document.getElementById('summary-content').textContent;
+            if (!text) return;
+            const utterance = new SpeechSynthesisUtterance(text);
+            speechSynthesis.speak(utterance);
+        }
+
+        function zoomIn() {
+            currentZoom += 10;
+            applyZoom();
+        }
+
+        function zoomOut() {
+            if (currentZoom > 60) {
+                currentZoom -= 10;
+                applyZoom();
+            }
+        }
+
+        function applyZoom() {
+            const el = document.getElementById('summary-content');
+            el.style.fontSize = currentZoom + '%';
+            document.getElementById('zoom-level').textContent = currentZoom + '%';
+        }
+
+        function printSummary() {
+            const win = window.open('', '', 'width=900,height=700');
+            win.document.write(`
+                <html><head><title>Simplified Summary</title>
+                <style>body { font-family: "Times New Roman", serif; line-height: 1.7; padding: 2rem; }</style>
+                </head><body>
+                ${document.getElementById('summary-content').innerHTML}
+                </body></html>
+            `);
+            win.document.close();
+            win.focus();
+            win.print();
+        }
+
+        function downloadSummary() {
+            const text = document.getElementById('summary-content').innerText;
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'simplified_summary.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        window.addEventListener('load', () => {
+            applyZoom();
+        });
+    </script>
+
+</body>
+</html>
